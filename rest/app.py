@@ -36,6 +36,16 @@ def before_request_func():
         logging.info(str(e))
 
 
+# SENDER
+@app.route('/sender', methods=["GET"])
+def get_sender():
+    response = {}
+    links = []
+    links.append(Link('labels', '/sender/labels'))
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
