@@ -147,6 +147,16 @@ def load_dashboard():
         return response
 
 
+# LOGOUT
+@app.route('/sender/logout')
+def load_logout():
+    session.clear()
+
+    response = make_response('', 302)
+    response.headers['Location'] = url_for('load_login')
+    return response
+
+
 if __name__ == '__main__':
     app.run()
 
