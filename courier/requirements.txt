@@ -1,2 +1,5 @@
 python-dotenv
 redis
+bcrypt
+pyjwt
+requests
