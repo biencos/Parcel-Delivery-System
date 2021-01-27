@@ -216,6 +216,44 @@ def get_courier():
     return document.to_json(), 200
 
 
+@app.route('/courier/labels', methods=["GET"])
+def get_all_labels():
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "courier":
+        return make_response(
+            {"message": "Log in as a courier to get labels", "status": "error"}, 401)
+
+    label_ids = list(db.keys("label:*"))
+
+    for i, label_id in enumerate(label_ids):
+        label_ids[i] = label_id.decode('utf-8')
+
+    labels = []
+    for label_id in label_ids:
+        label = {}
+        sl = label_id.split(":")
+        label_id = sl[1]
+        label['label_id'] = label_id
+        label['receiver_name'] = db.hget(
+            f"label:{label_id}", "receiver_name").decode('utf-8')
+        label['parcel_locker_id'] = db.hget(
+            f"label:{label_id}", "parcel_locker_id").decode('utf-8')
+        label['package_size'] = db.hget(
+            f"label:{label_id}", "package_size").decode('utf-8')
+        label['sent'] = db.hget(
+            f"label:{label_id}", "sent").decode('utf-8')
+
+        labels.append(label)
+
+    response = {}
+    response['labels'] = labels
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
