@@ -141,6 +141,38 @@ def delete_label(label_id):
     document = Document(data=response, links=links)
     return document.to_json(), 200
 
+
+@app.route('/sender/labels/<label_id>', methods=["PUT"])
+def change_label_sent_status(label_id):
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "sender":
+        return make_response(
+            {"message": "Log in as a sender to change status of sent", "status": "error"}, 401)
+
+    labels = db.keys(f"label:{label_id}")
+    if not label_id or len(labels) == 0:
+        return make_response(
+            {"message": "Incorrect label ID", "status": "error"}, 403)
+
+    sent = db.hget(f"label:{label_id}", "sent").decode('utf-8')
+    if not sent:
+        return make_response(
+            {"message": f"This label doesn't have sent status yet", "status": "error"}, 403)
+
+    if sent == "nie":
+        db.hset(f"label:{label_id}", "sent", "tak")
+    else:
+        db.hset(f"label:{label_id}", "sent", "nie")
+    db.sadd(f"user:{username}:labels", label_id)
+
+    response = {"message": "Status of label was succesfully changed"}
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
