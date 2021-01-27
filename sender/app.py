@@ -8,6 +8,7 @@ from flask import Flask, render_template, make_response, request, flash, url_for
 from flask_session import Session
 from bcrypt import hashpw, gensalt, checkpw
 import jwt
+import requests
 
 
 load_dotenv()
@@ -155,6 +156,54 @@ def load_logout():
     response = make_response('', 302)
     response.headers['Location'] = url_for('load_login')
     return response
+
+
+# LABELS
+@app.route('/labels')
+def load_labels():
+    username = session.get("username")
+
+    if not username:
+        make_response(
+            {"message": "First you need to log in", "status": "error"}, 401)
+
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.get(f"{REST_API_URL}/sender/labels", headers=h)
+
+    body = response.json()
+    status = response.status_code
+    return body, status
+
+
+@app.route('/labels', methods=["POST"])
+def add_label():
+    # TODO
+    return
+
+
+@app.route('/labels/<label_id>', methods=["DELETE"])
+def delete_label(label_id):
+    # TODO
+    return
+
+
+@app.route('/labels/<label_id>', methods=["PUT"])
+def change_label_sent_status(label_id):
+    # TODO
+    return
+
+
+# NOTIFICATIONS
+@app.route('/sender/notifications')
+def load_notifications():
+    # TODO
+    return
+
+
+@app.route('/notifications')
+def get_notifications():
+    # TODO
+    return
 
 
 if __name__ == '__main__':
