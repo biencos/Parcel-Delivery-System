@@ -3,3 +3,6 @@ redis
 Flask
 Flask-Session
 gunicorn
+bcrypt
+pyjwt
+requests
