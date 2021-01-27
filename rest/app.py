@@ -111,6 +111,36 @@ def add_label():
     return document.to_json(), 201
 
 
+@app.route('/sender/labels/<label_id>', methods=["DELETE"])
+def delete_label(label_id):
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "sender":
+        return make_response(
+            {"message": "Log in as a sender to delete label", "status": "error"}, 401)
+
+    if not label_id or not db.sismember(f"user:{username}:labels", label_id):
+        return make_response(
+            {"message": f"Incorrect label ID", "status": "error"}, 403)
+
+    sent = db.hget(f"label:{label_id}", "sent").decode('utf-8')
+    if not sent:
+        return make_response(
+            {"message": f"This label doesn't have sent status yet, weird", "status": "error"}, 403)
+
+    if sent == "tak":
+        return make_response(
+            {"message": f"You can't delete label that was sent. Change label status, and then try again", "status": "error"}, 403)
+
+    db.delete(f"label:{label_id}")
+    db.srem(f"user:{username}:labels", label_id)
+
+    response = {"message": "Label was deleted"}
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
