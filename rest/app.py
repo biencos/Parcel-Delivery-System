@@ -299,6 +299,40 @@ def add_package(label_id):
     return document.to_json(), 201
 
 
+@app.route('/courier/packages/<package_id>/status/<status>', methods=["PUT"])
+def change_package_status(package_id, status):
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "courier":
+        return make_response(
+            {"message": "Log in as a courier to update status", "status": "error"}, 401)
+
+    packages = db.keys(f"package:{package_id}")
+    if not package_id or len(packages) == 0:
+        return make_response(
+            {"message": "Incorrect package ID", "status": "error"}, 403)
+
+    if not status or not status in ["w drodze", "dostarczona", "odebrana"]:
+        return make_response(
+            {"message": "Incorrect status, status must be one of this: 'w drodze', 'dostarczona', 'odebrana' ", "status": "error"}, 403)
+
+    st = db.hget(f"package:{package_id}", "status").decode('utf-8')
+    if status == st:
+        return make_response(
+            {"message": "Package already have that status.", "status": "error"}, 403)
+
+    db.hset(f"package:{package_id}", "status", status)
+    db.sadd(f"courier:{username}:packages", package_id)
+    db.hset(f"notification:{package_id}", "new_status", status)
+
+    response = {
+        "message": f"Status of package was succesfully updated to {status}"}
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
