@@ -1,10 +1,12 @@
 import sys
 import os
 from getpass import getpass
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from redis import Redis
 from bcrypt import hashpw, gensalt, checkpw
+import jwt
 
 
 load_dotenv()
@@ -69,13 +71,56 @@ def register(firstname, lastname, username, email, password, password1):
 
 
 def start_login():
-    # TODO
-    return
+    print('\n')
+    print('Sign in')
+    print('Enter your login credentials \n')
+    username = input("Your Username: ")
+    password = getpass("Your Password: ")
+    username = str(username)
+    password = str(password)
+    login(username, password)
+    return username
 
 
 def login(username, password):
-    # TODO
-    return
+    if not username or not password:
+        print('You passed empty values during login process')
+        sys.exit(0)
+    if len(username) < 3 or len(username) > 12:
+        print('Length of username must be between 3 and 12')
+        sys.exit(0)
+    if len(password) < 8:
+        print('Length of password must be at least 8 ')
+        sys.exit(0)
+
+    if verify(username, password):
+        print("\n")
+        print(f"Welcome back courier: {username}")
+        token = generate_jwt_token(username)
+    else:
+        print("Something went wrong! Was your credentials correct?")
+        sys.exit(0)
+
+
+def verify(username, password):
+    p = password.encode()
+    h = db.hget(f"courier:{username}", "password")
+
+    if h:
+        return checkpw(p, h)
+    else:
+        return False
+
+
+def generate_jwt_token(username):
+    USER_TYPE = 'courier'
+    HOW_MANY_MINUTES_VALID = 10
+    JWT_KEY = os.getenv("JWT_PRIVATE_KEY")
+    if not username:
+        return ''
+
+    experience_date = datetime.utcnow() + timedelta(minutes=HOW_MANY_MINUTES_VALID)
+    return jwt.encode({'username': username, 'exp': experience_date, 'usertype': USER_TYPE}, JWT_KEY, algorithm='HS256').decode()
 
 
 # OPERATIONS ON COURIER REST API

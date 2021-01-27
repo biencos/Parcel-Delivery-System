@@ -13,8 +13,8 @@ def main():
     option = read_options(input("Option: "), 1, 3)
 
     if option == 1:
+        username = ac.start_login()
         # TODO
-        pass
     if option == 2:
         ac.start_register()
         print('Press:')
@@ -22,8 +22,8 @@ def main():
         print('2 - for exit')
         option = read_options(input("Option: "), 1, 2)
         if option == 1:
+            username = ac.start_login()
             # TODO
-            pass
         if option == 2:
             print('\nSee you next time')
             sys.exit(0)
