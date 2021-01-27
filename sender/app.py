@@ -177,8 +177,20 @@ def load_labels():
 
 @app.route('/labels', methods=["POST"])
 def add_label():
-    # TODO
-    return
+    username = session.get("username")
+
+    if not username:
+        make_response(
+            {"message": "First you need to log in", "status": "error"}, 401)
+
+    h = generate_headers(generate_jwt_token(username))
+    d = request.form
+    response = requests.post(
+        f"{REST_API_URL}/sender/labels", headers=h, data=d)
+
+    body = response.text
+    status = response.status_code
+    return body, status
 
 
 @app.route('/labels/<label_id>', methods=["DELETE"])
