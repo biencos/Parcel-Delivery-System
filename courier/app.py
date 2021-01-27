@@ -27,8 +27,7 @@ def main():
             if option == 1:
                 ac.start_getting_labels(username)
             if option == 2:
-                # TODO
-                pass
+                ac.start_adding_package(username)
             if option == 3:
                 # TODO
                 pass
@@ -53,8 +52,7 @@ def main():
                 if option == 1:
                     ac.start_getting_labels(username)
                 if option == 2:
-                    # TODO
-                    pass
+                    ac.start_adding_package(username)
                 if option == 3:
                     # TODO
                     pass

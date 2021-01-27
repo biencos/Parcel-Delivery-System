@@ -169,13 +169,27 @@ def get_courier_labels(url, username):
 
 
 def start_adding_package(username):
-    # TODO
-    return
+    print('\n')
+    print('Add package')
+    print('Enter id of label from which you want to create package')
+    label_id = input("Label Id: ")
+    add_package_from_label(
+        f"{REST_API_URL}/courier/labels/{label_id}", username)
 
 
 def add_package_from_label(url, username):
-    # TODO
-    return
+    h = generate_headers(generate_jwt_token(username))
+    d = []
+    response = requests.post(url, headers=h, data=d)
+
+    if response.json():
+        body = response.json()
+        if "message" in body:
+            print(body["message"])
+        else:
+            print("Ups, Something went wrong. We weren't able to add your package!")
+    else:
+        print("Ups, Something went wrong. We weren't able to add your package!")
 
 
 def start_changing_package_status(username):
