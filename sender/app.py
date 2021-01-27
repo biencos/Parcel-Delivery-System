@@ -195,8 +195,27 @@ def add_label():
 
 @app.route('/labels/<label_id>', methods=["DELETE"])
 def delete_label(label_id):
-    # TODO
-    return
+    username = session.get("username")
+
+    if not username:
+        make_response(
+            {"message": "First you need to log in", "status": "error"}, 401)
+
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.delete(
+        f"{REST_API_URL}/sender/labels/{label_id}", headers=h)
+
+    body = response.text
+    status = response.status_code
+    return body, status
+
+    """ if not db.sismember(f"user:{username}:labels", label_id):
+        make_response(
+            {"message": f"This label for user {username} doesn't exist", "status": "error"}, 403)
+
+    db.delete(f"label:{label_id}")
+    db.srem(f"user:{username}:labels", label_id)
+    return "Label deleted", 200 """
 
 
 @app.route('/labels/<label_id>', methods=["PUT"])
