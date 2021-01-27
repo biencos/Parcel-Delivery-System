@@ -206,6 +206,133 @@ def get_notifications():
     return document.to_json(), 200
 
 
+# COURIER
+@app.route('/courier', methods=["GET"])
+def get_courier():
+    response = {}
+    links = []
+    links.append(Link('labels', '/courier/labels'))
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
+@app.route('/courier/labels', methods=["GET"])
+def get_all_labels():
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "courier":
+        return make_response(
+            {"message": "Log in as a courier to get labels", "status": "error"}, 401)
+
+    label_ids = list(db.keys("label:*"))
+
+    for i, label_id in enumerate(label_ids):
+        label_ids[i] = label_id.decode('utf-8')
+
+    labels = []
+    for label_id in label_ids:
+        label = {}
+        sl = label_id.split(":")
+        label_id = sl[1]
+        label['label_id'] = label_id
+        label['receiver_name'] = db.hget(
+            f"label:{label_id}", "receiver_name").decode('utf-8')
+        label['parcel_locker_id'] = db.hget(
+            f"label:{label_id}", "parcel_locker_id").decode('utf-8')
+        label['package_size'] = db.hget(
+            f"label:{label_id}", "package_size").decode('utf-8')
+        label['sent'] = db.hget(
+            f"label:{label_id}", "sent").decode('utf-8')
+
+        labels.append(label)
+
+    response = {}
+    response['labels'] = labels
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
+@app.route('/courier/labels/<label_id>', methods=["POST"])
+def add_package(label_id):
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "courier":
+        return make_response(
+            {"message": "Log in as a courier to add package", "status": "error"}, 401)
+
+    labels = db.keys(f"label:{label_id}")
+    if not label_id or len(labels) == 0:
+        return make_response(
+            {"message": "Incorrect label ID", "status": "error"}, 403)
+
+    sent = db.hget(f"label:{label_id}", "sent").decode('utf-8')
+    if sent != "tak":
+        return make_response(
+            {"message": "You can't create package from unsent label.", "status": "error"}, 403)
+
+    package_id = label_id
+    packages = db.keys(f"package:{package_id}")
+    if len(packages) != 0:
+        return make_response(
+            {"message": "You already created package from this label", "status": "error"}, 403)
+
+    receiver_name = db.hget(
+        f"label:{label_id}", "receiver_name").decode('utf-8')
+    parcel_locker_id = db.hget(
+        f"label:{label_id}", "parcel_locker_id").decode('utf-8')
+    package_size = db.hget(f"label:{label_id}", "package_size").decode('utf-8')
+    status = "w drodze"
+
+    db.hset(f"package:{package_id}", "receiver_name", receiver_name)
+    db.hset(f"package:{package_id}", "parcel_locker_id", parcel_locker_id)
+    db.hset(f"package:{package_id}", "package_size", package_size)
+    db.hset(f"package:{package_id}", "status", status)
+    db.sadd(f"courier:{username}:packages", package_id)
+    db.hset(f"notification:{package_id}", "new_status", status)
+
+    response = {"message": "Package was succesfully added"}
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 201
+
+
+@app.route('/courier/packages/<package_id>/status/<status>', methods=["PUT"])
+def change_package_status(package_id, status):
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "courier":
+        return make_response(
+            {"message": "Log in as a courier to update status", "status": "error"}, 401)
+
+    packages = db.keys(f"package:{package_id}")
+    if not package_id or len(packages) == 0:
+        return make_response(
+            {"message": "Incorrect package ID", "status": "error"}, 403)
+
+    if not status or not status in ["w drodze", "dostarczona", "odebrana"]:
+        return make_response(
+            {"message": "Incorrect status, status must be one of this: 'w drodze', 'dostarczona', 'odebrana' ", "status": "error"}, 403)
+
+    st = db.hget(f"package:{package_id}", "status").decode('utf-8')
+    if status == st:
+        return make_response(
+            {"message": "Package already have that status.", "status": "error"}, 403)
+
+    db.hset(f"package:{package_id}", "status", status)
+    db.sadd(f"courier:{username}:packages", package_id)
+    db.hset(f"notification:{package_id}", "new_status", status)
+
+    response = {
+        "message": f"Status of package was succesfully updated to {status}"}
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
