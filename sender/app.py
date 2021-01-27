@@ -238,14 +238,34 @@ def change_label_sent_status(label_id):
 # NOTIFICATIONS
 @app.route('/sender/notifications')
 def load_notifications():
-    # TODO
-    return
+    username = session.get("username")
+    if username:
+        return render_template('notifications.html')
+    else:
+        flash("Ta akcja wymaga zalogowania!")
+        response = make_response('', 302)
+        response.headers['Location'] = url_for('load_login')
+        return response
 
 
 @app.route('/notifications')
 def get_notifications():
-    # TODO
-    return
+    username = session.get("username")
+    if not username:
+        make_response(
+            {"message": "First you need to log in", "status": "error"}, 401)
+
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.get(f"{REST_API_URL}/sender/notifications", headers=h)
+    logging.info(response.status_code)
+    logging.info(response.text)
+
+    if response.status_code == 200:
+        body = response.json()
+    else:
+        body = response.text
+    status = response.status_code
+    return body, status
 
 
 if __name__ == '__main__':
