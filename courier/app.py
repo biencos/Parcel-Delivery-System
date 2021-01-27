@@ -14,8 +14,19 @@ def main():
 
     if option == 1:
         # TODO
+        pass
     if option == 2:
-        # TODO
+        ac.start_register()
+        print('Press:')
+        print('1 - for login')
+        print('2 - for exit')
+        option = read_options(input("Option: "), 1, 2)
+        if option == 1:
+            # TODO
+            pass
+        if option == 2:
+            print('\nSee you next time')
+            sys.exit(0)
     else:
         print('\nSee you next time')
         sys.exit(0)
