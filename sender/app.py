@@ -134,6 +134,19 @@ def verify(username, password):
         return False
 
 
+# DASHBOARD
+@app.route('/sender/dashboard')
+def load_dashboard():
+    username = session.get("username")
+    if username:
+        return render_template('dashboard.html')
+    else:
+        flash("Ta akcja wymaga zalogowania!")
+        response = make_response('', 302)
+        response.headers['Location'] = url_for('load_login')
+        return response
+
+
 if __name__ == '__main__':
     app.run()
 

@@ -6,11 +6,15 @@
 
     <div class="topnav" id="topnav">
         <nav>
-            <ul>
-                <li id="home_tab"><a href="/">Strona Główna</a></li>
-                <li id="signup_tab"><a href="/sender/register">Zarejestruj się</a></li>
-                <li id="login_tab"><a href="/sender/login">Zaloguj się</a></li>
-            </ul>
+            {% if not session['username'] %}
+            <li id="home_tab"><a href="/">Strona Główna</a></li>
+            <li id="signup_tab"><a href="/sender/register">Zarejestruj się</a></li>
+            <li id="login_tab"><a href="/sender/login">Zaloguj się</a></li>
+            {% endif %} {% if session['username'] %}
+            <li id="dashboard_tab"><a href="/sender/dashboard">Moje Konto</a></li>
+            <li id="notifications_tab"><a href="/sender/notifications">Moje Powiadomienia</a></li>
+            <li id="logout_tab"><a href="/sender/logout">Wyloguj się</a></li>
+            {% endif %}
         </nav>
     </div>
 
