@@ -220,8 +220,19 @@ def delete_label(label_id):
 
 @app.route('/labels/<label_id>', methods=["PUT"])
 def change_label_sent_status(label_id):
-    # TODO
-    return
+    username = session.get("username")
+
+    if not username:
+        make_response(
+            {"message": "First you need to log in", "status": "error"}, 401)
+
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.put(
+        f"{REST_API_URL}/sender/labels/{label_id}", headers=h)
+
+    body = response.text
+    status = response.status_code
+    return body, status
 
 
 # NOTIFICATIONS
