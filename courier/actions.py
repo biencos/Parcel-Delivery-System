@@ -193,13 +193,30 @@ def add_package_from_label(url, username):
 
 
 def start_changing_package_status(username):
-    # TODO
-    return
+    print('\n')
+    print('Change package status')
+    print('Enter package data \n')
+    package_id = input("Package Id: ")
+    status = input("New Package Status: ")
+    if status in ["w drodze", "dostarczona", "odebrana"]:
+        change_package_status(
+            f"{REST_API_URL}/courier/packages/{package_id}/status/{status}", username)
+    else:
+        print("Incorrect status, status must be one of this: 'w drodze', 'dostarczona', 'odebrana' ")
 
 
 def change_package_status(url, username):
-    # TODO
-    return
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.put(url, headers=h)
+
+    if response.json():
+        body = response.json()
+        if "message" in body:
+            print(body["message"])
+        else:
+            print("Ups, Something went wrong. We weren't able to change package status!")
+    else:
+        print("Ups, Something went wrong. We weren't able to change package status!")
 
 
 def generate_headers(token):

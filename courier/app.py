@@ -29,8 +29,7 @@ def main():
             if option == 2:
                 ac.start_adding_package(username)
             if option == 3:
-                # TODO
-                pass
+                ac.start_changing_package_status(username)
     if option == 2:
         ac.start_register()
         print('Press:')
@@ -54,8 +53,7 @@ def main():
                 if option == 2:
                     ac.start_adding_package(username)
                 if option == 3:
-                    # TODO
-                    pass
+                    ac.start_changing_package_status(username)
         if option == 2:
             print('\nSee you next time')
             sys.exit(0)
