@@ -173,6 +173,39 @@ def change_label_sent_status(label_id):
     return document.to_json(), 200
 
 
+# SENDER NOTIFICATIONS
+@app.route('/sender/notifications', methods=["GET"])
+def get_notifications():
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "sender":
+        return make_response(
+            {"message": "Log in as a sender to get notifications", "status": "error"}, 401)
+
+    label_ids = list(db.smembers(f"user:{username}:labels"))
+    for i, label_id in enumerate(label_ids):
+        label_ids[i] = label_id.decode('utf-8')
+
+    notifications = []
+    for label_id in label_ids:
+        if db.exists(f"notification:{label_id}"):
+            notification = {}
+            notification['label_receiver'] = db.hget(
+                f"label:{label_id}", "receiver_name").decode('utf-8')
+            notification['new_status'] = db.hget(
+                f"notification:{label_id}", "new_status").decode('utf-8')
+
+            notifications.append(notification)
+            db.delete(f"notification:{label_id}")
+
+    response = {}
+    response['notifications'] = notifications
+    links = []
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
