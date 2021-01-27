@@ -8,6 +8,7 @@ from redis import Redis
 import jwt
 from flask_hal.document import Document
 from flask_hal.link import Link
+from uuid import uuid4
 
 
 load_dotenv()
@@ -79,6 +80,35 @@ def get_labels():
     links = []
     document = Document(data=response, links=links)
     return document.to_json(), 200
+
+
+@app.route('/sender/labels', methods=["POST"])
+def add_label():
+    username = g.authorization.get("username")
+    usertype = g.authorization.get("usertype")
+
+    if not username or usertype != "sender":
+        return make_response(
+            {"message": "Log in as a sender to add label", "status": "error"}, 401)
+
+    label_id = str(uuid4())
+    receiver_name = request.form.get("receiver_name")
+    parcel_locker_id = request.form.get("parcel_locker_id")
+    package_size = request.form.get("package_size")
+    sent = "nie"
+
+    db.hset(f"label:{label_id}", "receiver_name", receiver_name)
+    db.hset(f"label:{label_id}", "parcel_locker_id", parcel_locker_id)
+    db.hset(f"label:{label_id}", "package_size", package_size)
+    db.hset(f"label:{label_id}", "sent", sent)
+
+    db.sadd(f"user:{username}:labels", label_id)
+
+    response = {"message": "Label was added"}
+    links = []
+    links.append(Link('labels:DELETE', f'/sender/labels/{label_id}'))
+    document = Document(data=response, links=links)
+    return document.to_json(), 201
 
 
 # HOME

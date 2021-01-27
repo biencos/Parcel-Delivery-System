@@ -2,6 +2,6 @@ Flask
 gunicorn
 python-dotenv
 redis
-bcrypt
 flask_hal
 pyjwt
+uuid
