@@ -1,0 +1,5 @@
+python-dotenv
+redis
+Flask
+Flask-Session
+gunicorn
