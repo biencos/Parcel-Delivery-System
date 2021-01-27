@@ -206,6 +206,16 @@ def get_notifications():
     return document.to_json(), 200
 
 
+# COURIER
+@app.route('/courier', methods=["GET"])
+def get_courier():
+    response = {}
+    links = []
+    links.append(Link('labels', '/courier/labels'))
+    document = Document(data=response, links=links)
+    return document.to_json(), 200
+
+
 # HOME
 @app.route('/', methods=["GET"])
 def get_home():
