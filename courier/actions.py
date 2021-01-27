@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from redis import Redis
 from bcrypt import hashpw, gensalt, checkpw
 import jwt
+import requests
 
 
 load_dotenv()
@@ -128,13 +129,43 @@ def generate_jwt_token(username):
 # Add New Package
 # Change Package Status
 def start_getting_labels(username):
-    # TODO
-    return
+    print('\n')
+    print('Show Labels for Courier')
+    print('')
+    get_courier_labels(f"{REST_API_URL}/courier/labels", username)
 
 
 def get_courier_labels(url, username):
-    # TODO
-    return
+    h = generate_headers(generate_jwt_token(username))
+    response = requests.get(url, headers=h)
+
+    if response.json():
+        body = response.json()
+        if "message" in body:
+            m = body["message"]
+            print(m)
+        if "labels" in body:
+            labels = body["labels"]
+            i = 1
+            for label in labels:
+                print(f"Label {i}")
+                print("")
+                print(f"Label ID: {label['label_id']}")
+                print(f"Receiver Name: {label['receiver_name']}")
+                print(f"Parcel Locker ID: {label['parcel_locker_id']}")
+                print(f"Package Size: {label['package_size']}")
+                if label['sent'] == "tak":
+                    print("This package was sent.")
+                else:
+                    print("This package wasn't sent.")
+                print("\n")
+                i += 1
+        else:
+            print("Ups, Something went wrong. We weren't able to download your labels!")
+
+    else:
+        print("Ups, Something went wrong. We weren't able to download your labels!")
+        sys.exit(0)
 
 
 def start_adding_package(username):
@@ -155,3 +186,9 @@ def start_changing_package_status(username):
 def change_package_status(url, username):
     # TODO
     return
+
+
+def generate_headers(token):
+    headers = {}
+    headers["Authorization"] = f"Bearer {token}"
+    return headers

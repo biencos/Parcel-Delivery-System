@@ -14,7 +14,24 @@ def main():
 
     if option == 1:
         username = ac.start_login()
-        # TODO
+        ac.start_getting_labels(username)
+
+        while option != 4:
+            print('')
+            print('Press:')
+            print('1 - to show labels')
+            print('2 - to add package')
+            print('3 - to change package status')
+            print('4 - for exit')
+            option = read_options(input("Option: "), 1, 4)
+            if option == 1:
+                ac.start_getting_labels(username)
+            if option == 2:
+                # TODO
+                pass
+            if option == 3:
+                # TODO
+                pass
     if option == 2:
         ac.start_register()
         print('Press:')
@@ -23,7 +40,24 @@ def main():
         option = read_options(input("Option: "), 1, 2)
         if option == 1:
             username = ac.start_login()
-            # TODO
+            ac.start_getting_labels(username)
+
+            while option != 4:
+                print('')
+                print('Press:')
+                print('1 - to show labels')
+                print('2 - to add package')
+                print('3 - to change package status')
+                print('4 - for exit')
+                option = read_options(input("Option: "), 1, 4)
+                if option == 1:
+                    ac.start_getting_labels(username)
+                if option == 2:
+                    # TODO
+                    pass
+                if option == 3:
+                    # TODO
+                    pass
         if option == 2:
             print('\nSee you next time')
             sys.exit(0)
