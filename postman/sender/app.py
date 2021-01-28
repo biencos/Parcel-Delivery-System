@@ -9,6 +9,8 @@ from flask_session import Session
 from bcrypt import hashpw, gensalt, checkpw
 import jwt
 import requests
+from authlib.integrations.flask_client import OAuth
+from six.moves.urllib.parse import urlencode
 
 
 load_dotenv()
@@ -26,6 +28,45 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 ses = Session(app)
 logging.basicConfig(level=logging.INFO)
+
+oauth = OAuth(app)
+
+auth0 = oauth.register(
+    'auth0',
+    client_id=os.getenv("AUTH0_CLIENT_ID"),
+    client_secret=os.getenv("AUTH0_CLIENT_SECRET"),
+    api_base_url='https://' + os.getenv("AUTH0_DOMAIN"),
+    access_token_url='https://' + os.getenv("AUTH0_DOMAIN") + '/oauth/token',
+    authorize_url='https://' + os.getenv("AUTH0_DOMAIN") + '/authorize',
+    client_kwargs={
+        'scope': 'openid profile email',
+    },
+)
+
+# AUTH0
+
+
+@app.route('/auth/login')
+def load_auth0():
+    return auth0.authorize_redirect(redirect_uri=os.getenv("AUTH0_CALLBACK_URL"), audience=os.getenv("AUTH0_AUDIENCE"))
+
+
+@app.route('/callback')
+def handle_callback():
+    auth0.authorize_access_token()
+    userinfo = auth0.get('userinfo').json()
+    username = userinfo['name']
+
+    flash(f"Witaj z powrotem {username}")
+    session["username"] = username
+    session["logged-at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+    token = generate_jwt_token(username)
+    logging.info(f"Token (Auth0): {token}")
+
+    response = make_response('', 302)
+    response.headers['Location'] = url_for('load_dashboard')
+    return response
 
 
 # HOME
@@ -153,9 +194,15 @@ def load_dashboard():
 def load_logout():
     session.clear()
 
+    params = urlencode({'returnTo': url_for(
+        'load_login', _external=True), 'client_id': auth0.client_id})
     response = make_response('', 302)
-    response.headers['Location'] = url_for('load_login')
+    response.headers['Location'] = auth0.api_base_url + '/v2/logout?' + params
     return response
+
+    """ response = make_response('', 302)
+    response.headers['Location'] = url_for('load_login')
+    return response """
 
 
 # LABELS
