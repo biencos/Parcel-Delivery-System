@@ -1,7 +1,0 @@
-Flask
-gunicorn
-python-dotenv
-redis
-flask_hal
-pyjwt
-uuid
