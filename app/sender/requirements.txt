@@ -1,0 +1,10 @@
+authlib==0.15.3
+python-dotenv
+redis
+Flask
+Flask-Session
+gunicorn
+bcrypt
+pyjwt
+requests
+six
