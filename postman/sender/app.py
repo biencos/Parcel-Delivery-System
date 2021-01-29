@@ -43,9 +43,8 @@ auth0 = oauth.register(
     },
 )
 
+
 # AUTH0
-
-
 @app.route('/auth/login')
 def load_auth0():
     return auth0.authorize_redirect(redirect_uri=os.getenv("AUTH0_CALLBACK_URL"), audience=os.getenv("AUTH0_AUDIENCE"))
@@ -59,6 +58,7 @@ def handle_callback():
 
     flash(f"Witaj z powrotem {username}")
     session["username"] = username
+    session["login-method"] = "auth0"
     session["logged-at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
     token = generate_jwt_token(username)
@@ -151,6 +151,7 @@ def login():
     if verify(username, password):
         flash(f"Witaj z powrotem {username}")
         session["username"] = username
+        session["login-method"] = "standard"
         session["logged-at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
         token = generate_jwt_token(username)
@@ -192,17 +193,21 @@ def load_dashboard():
 # LOGOUT
 @app.route('/sender/logout')
 def load_logout():
+    is_logged_with_auth0 = False
+    if session["login-method"] == "auth0":
+        is_logged_with_auth0 = True
+
     session.clear()
-
-    params = urlencode({'returnTo': url_for(
-        'load_login', _external=True), 'client_id': auth0.client_id})
     response = make_response('', 302)
-    response.headers['Location'] = auth0.api_base_url + '/v2/logout?' + params
-    return response
+    if is_logged_with_auth0:
+        params = urlencode({'returnTo': url_for(
+            'load_login', _external=True), 'client_id': auth0.client_id})
+        url = auth0.api_base_url + '/v2/logout?' + params
+    else:
+        url = url_for('load_login')
 
-    """ response = make_response('', 302)
-    response.headers['Location'] = url_for('load_login')
-    return response """
+    response.headers['Location'] = url
+    return response
 
 
 # LABELS
